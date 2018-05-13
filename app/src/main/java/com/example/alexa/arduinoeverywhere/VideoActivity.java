@@ -128,6 +128,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                     break;
                 case CAP_STARTED:
                     strText = "Started";
+                    ForTheService.backForTheService.FlushStarted(capturer.getRTSPAddr());
                     break;
                 case CAP_STOPPED:
                     strText = "Stopped";
@@ -495,66 +496,47 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                         if(capturer == null)
                             return;
                         if( !isRec() ){
+                            StartVideo();
 
-                            String sRecStatus = misAudioEnabled?"00:00":"00:00. Audio OFF";
-                            captureStatusText.setText(sRecStatus);
-                            captureStatusStat.setText("");
-                            led.setImageResource(R.drawable.led_red);
-
-                            if(!TEST_SEPARATED_CONTROL){
-                                //all start
-                                capturer.Start();
-
-                                //test
-                                //capturer.StopStreaming();
-                                mbuttonRec.setImageResource(R.drawable.ic_stop);
-
-                            }else{
-                                //induvidual start test
-                                //-----------------------------------------------------------------
-                                // tentons de ne lancer que le streaming  // modif rtsp serv
-                                capturer.StartStreaming();
-                                mbuttonRec.setImageResource(R.drawable.ic_stop);
-
-                                //start postponed rec
-                                /*
-                                new Handler().postDelayed(new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        capturer.StartRecording();
-                                    }
-                                }, 10000);
-
-                                //start postponed rec
-                                new Handler().postDelayed(new Runnable()
-                                {
-                                    @Override
-                                    public void run()
-                                    {
-                                        capturer.StartTranscoding();
-                                    }
-                                }, 20000);
-                                */
-                                //-----------------------------------------------------------------
-
-                            }
-
-                            //mbuttonRec.setText("Stop Streaming");
                         }else{
-                            capturer.Stop();
-                            led.setImageResource(R.drawable.led_green);
-                            captureStatusText.setText("");
-                            captureStatusStat.setText("");
-                            captureStatusText2.setText("");
-                            mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
-                            //mbuttonRec.setText("Start Streaming");
+                            StopVideo();
                         }
-
                     }
                 }
         );
+    }
+
+    private void StartVideo() {
+        String sRecStatus = misAudioEnabled?"00:00":"00:00. Audio OFF";
+        captureStatusText.setText(sRecStatus);
+        captureStatusStat.setText("");
+        led.setImageResource(R.drawable.led_red);
+
+        if(!TEST_SEPARATED_CONTROL){
+            //all start
+            capturer.Start();
+
+            //test
+            //capturer.StopStreaming();
+            mbuttonRec.setImageResource(R.drawable.ic_stop);
+
+        }else{
+            //induvidual start test
+            //-----------------------------------------------------------------
+            // tentons de ne lancer que le streaming  // modif rtsp serv
+            capturer.StartStreaming();
+            mbuttonRec.setImageResource(R.drawable.ic_stop);
+
+        }
+    }
+
+    private void StopVideo() {
+        capturer.Stop();
+        led.setImageResource(R.drawable.led_green);
+        captureStatusText.setText("");
+        captureStatusStat.setText("");
+        captureStatusText2.setText("");
+        mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
     }
 
     public boolean isRec(){
@@ -965,10 +947,9 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
     }
 
     /*****
-     *  tentative de bind
+     *  sous service pour dialiguer avec Service USBtoIP
      */
     public static class ForTheService extends Service{
-
 
         private final IBinder mBinder = new VideoActivity.ForTheService.LocalBinder();
 
@@ -980,33 +961,39 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
         }
         //Here Activity register to the service as Callbacks client
         public void registerClient(ServiceUSBToIP ThePilotingService){
-                backForTheService = (Callbacks)ThePilotingService; // avec un callback static plus besoin de this
+                backForTheService = ThePilotingService; // avec un callback static plus besoin de this
+        }
 
-                /* if(this.activity!=null){
-                //    this.activity.setUiEnabled(isSerialPortOpen);    // ca c'est car copié de serviceusbtoip
-                } */
-            }
+        // Ordonne Le démarrage de la video
+        public void StartVideo() {
+            if (!sVideoActivity.isRec()) sVideoActivity.StartVideo();
+        }
+
+        // Ordonne La fermeture de la video
+        public void StopVideoEtFermeActivity() {
+            new Handler().postDelayed(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    if (sVideoActivity.isRec()) {
+                        sVideoActivity.StopVideo();
+                    }
+                    sVideoActivity.finish();
+                }
+            }, 1000);
+        }
 
         //@Override
         public IBinder onBind(Intent intent) {
             return mBinder;
         }
 
-        public void Testicule(){
-            VideoActivity.Callexterne(this);
-        }
-
         static Callbacks backForTheService;
         public interface Callbacks {
             void TimeOutVideo();
+            void FlushStarted(String flush);
         }
     }
-    private static void Callexterne(VideoActivity.ForTheService Ohtoi){
-        Toast.makeText( Ohtoi ,"Oh ben c'est cool!", Toast.LENGTH_LONG).show();
-    }
-    /* exemples
-    private void turlututu(){
 
-        ForTheService.backForTheService.TimeOutVideo();
-    } */
 }

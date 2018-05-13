@@ -365,18 +365,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
             // Selon l'etiquette on fait un truc
             if (Etiquette.equals("Message cool") )
             {
-                // Que peut on faire ?
-                if (Contenu.equals("micheal jordan est mort")){
-                    activity.wakeupScreen();
-
-                    DemarreVideo();
-                }
-                if (Contenu.equals("micheal jordan est pop")){
-                    mVideo.Testicule();
-                }
-                if (Contenu.equals("micheal jordan est vivant")){
-                    activity.wakedownScreen();
-                }
             }
 
             if (Etiquette.equals("message hexa"))
@@ -391,6 +379,21 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
             if (Etiquette.equals("capteurs"))
             {
                 // pas encore définis
+            }
+
+            if (Etiquette.equals("video"))
+            {
+                // on peut recevoir 2 requetes : démarrer ou arrèter   request   stop
+
+                if (Contenu.equals("request")) {
+                    wakeupScreen();
+                    DemarreVideo();
+                }
+
+                if (Contenu.equals("stop")) {
+                    mVideo.StopVideoEtFermeActivity();
+                    wakedownScreen();
+                }
             }
 
             iDebutEtiquette = DonneesRecues.indexOf("<");
@@ -438,15 +441,88 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         }
     }
 
+    //---------------------------------------------------------------------
+    // en rapport avec la video
+    // permettre le réveil du téléphone
+    private PowerManager.WakeLock mWakeLock;
+    KeyguardManager.KeyguardLock keyguardLock;
+
+    public void wakeupScreen() {
+
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+        }
+        mWakeLock.acquire();
+
+        if (keyguardLock==null) {
+            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+            keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        }
+        keyguardLock.disableKeyguard();
+
+        ContinueLockUnLock=false; // interromp le cycle unlock/lock
+
+        Log.e("WakeUp Manager", "Réveil");
+    }
+    public void wakedownScreen() {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+        }
+        if (mWakeLock.isHeld()) mWakeLock.release();
+
+        if (keyguardLock==null) {
+            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+            keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        }
+        // keyguardLock.reenableKeyguard();
+        ContinueLockUnLock=true; // autorise le cycle unlock/lock
+        UnLockLock();
+        Log.e("WakeUp Manager", "Dodo");
+    }
+
+    private boolean ContinueLockUnLock=false;
+
+    private void UnLockLock(){
+        Log.e("WakeUp Manager", "unlock");
+        if (mWakeLock!=null)  mWakeLock.acquire();
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (ContinueLockUnLock)LockUnLock();
+            }
+        }, 1000);
+    }
+
+    private void LockUnLock(){
+        Log.e("WakeUp Manager", "lock");
+        if (mWakeLock!=null)if (mWakeLock.isHeld()) mWakeLock.release();
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                UnLockLock();
+            }
+        },  1500000);
+    }
+    // fin fonctions sortir de veille
+    //---------------------------modif service
 
     /******
-     *  crée une connection
+     *  crée une connection avec VideoActivity
      */
     Intent VideoIntent;
     Intent ServiceVideoIntent;
     VideoActivity.ForTheService mVideo;
 
     private void DemarreVideo() {
+        // démarre l'acivitée
         VideoIntent= new Intent(ServiceUSBToIP.this, VideoActivity.class);
         VideoIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(VideoIntent);
@@ -454,6 +530,16 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         ServiceVideoIntent= new Intent(ServiceUSBToIP.this,
                     VideoActivity.ForTheService.class);
         bindService(ServiceVideoIntent,mConnectionVideo,Context.BIND_AUTO_CREATE);
+
+        // il ne faut pas le faire de suite mais peut être qu'on peut faire mieux
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mVideo.StartVideo();
+            }
+        }, 1000);
     }
 
     /** Defines callbacks for service binding, passed to bindService() */
@@ -477,8 +563,13 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     //callbacks interface pour dialoguer avec
     public void TimeOutVideo(){
         //  pour l'instant rien de défini
-        Toast.makeText( this ,"fin!", Toast.LENGTH_LONG).show();
-        SendMessageToTCP("<Message cool>=<timeout video>");
+        Toast.makeText( this ,"relaunch!", Toast.LENGTH_LONG).show();
+        //SendMessageToTCP("<Message cool>=<timeout video>");
+        mVideo.StartVideo();
+    }
+    public void FlushStarted(String flush){
+        String tFlush =  flush.substring(0,flush.length()-8) ;
+        SendMessageToTCP("<video>=<flush=" + tFlush +">");
     }
 
     // fin de la liaison avec le service de VideoActivity
@@ -533,7 +624,5 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     //callbacks interface for communication with service clients!
     public interface Callbacks{
         void setUiEnabled(boolean bool);
-        void wakeupScreen();
-        void wakedownScreen();
     }
 }
