@@ -30,6 +30,9 @@
 		
         <service android:name="ServiceUSBToIP">
         </service>
+
+        <service android:name=".VideoActivity$ForTheService">
+        </service>
     </application>
 
     <uses-sdk

@@ -4,11 +4,15 @@ package com.example.alexa.arduinoeverywhere;
 Ne pas oublier de déclarer le service dans l'AndroidManifest
  */
 
+import android.app.KeyguardManager;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,9 +54,7 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         // section USB
         //---------------------------
         // section binding avec callback
-        serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
-        startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
-        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        DemarageDuService();
         //--------------------------- startService bindService
     }
 
@@ -119,16 +121,24 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
     protected void onStart() {
         super.onStart();
         // Bind to LocalService
-        Intent intent = new Intent(this, ServiceUSBToIP.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        //Intent intent = new Intent(this, ServiceUSBToIP.class);
+        //bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        unbindService(mConnection);
+        // unbindService(mConnection); // il faut pas car ça arrète le service
+        // stopService(serviceIntent); // il faut pas car ça arrète le service
         mBound = false;
     }
+
+    private void DemarageDuService(){
+        serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
+        startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
+        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+    }
+
 
     /** Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -157,6 +167,76 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         USBstopButton.setEnabled(bool);
         USBTextAEnvoyer.setEnabled(bool);
     }
+
+    // permettre le réveil du téléphone
+    private PowerManager.WakeLock mWakeLock;
+    KeyguardManager.KeyguardLock keyguardLock;
+
+    public void wakeupScreen() {
+
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+        }
+        mWakeLock.acquire();
+
+        if (keyguardLock==null) {
+            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+            keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        }
+        keyguardLock.disableKeyguard();
+
+        ContinueLockUnLock=false; // interromp le cycle unlock/lock
+
+        Log.e("WakeUp Manager", "Réveil");
+    }
+    public void wakedownScreen() {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+        }
+        if (mWakeLock.isHeld()) mWakeLock.release();
+
+        if (keyguardLock==null) {
+            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
+            keyguardLock = keyguardManager.newKeyguardLock("TAG");
+        }
+        // keyguardLock.reenableKeyguard();
+        ContinueLockUnLock=true; // autorise le cycle unlock/lock
+        UnLockLock();
+        Log.e("WakeUp Manager", "Dodo");
+    }
+
+    private boolean ContinueLockUnLock=false;
+
+    private void UnLockLock(){
+        Log.e("WakeUp Manager", "unlock");
+        if (mWakeLock!=null)  mWakeLock.acquire();
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if (ContinueLockUnLock)LockUnLock();
+            }
+        }, 1000);
+    }
+
+    private void LockUnLock(){
+        Log.e("WakeUp Manager", "lock");
+        if (mWakeLock!=null)if (mWakeLock.isHeld()) mWakeLock.release();
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                UnLockLock();
+            }
+        },  1500000);
+    }
+    // fin fonctions sortir de veille
     //---------------------------modif service
 
 }

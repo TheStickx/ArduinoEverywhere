@@ -26,9 +26,11 @@ comme mentionné à https://felhr85.net/2014/11/11/usbserial-a-serial-port-drive
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -56,11 +58,12 @@ import android.os.PowerManager;
 import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
 import android.os.Handler;
+import android.widget.Toast;
 /*
  * Created by alexa on 04/03/2018.
  */
 
-public class ServiceUSBToIP extends Service {
+public class ServiceUSBToIP extends Service implements VideoActivity.ForTheService.Callbacks {
 
     public final String ACTION_USB_PERMISSION = "com.hariharan.arduinousb.USB_PERMISSION";
     UsbManager usbManager;
@@ -77,74 +80,7 @@ public class ServiceUSBToIP extends Service {
 
     // section TCP client
     //---------------------------
-    // permettre le réveil du téléphone
-    private PowerManager.WakeLock mWakeLock;
-    KeyguardLock keyguardLock;
 
-    private void wakeupScreen() {
-
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
-        }
-        mWakeLock.acquire();
-
-        if (keyguardLock==null) {
-            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
-            keyguardLock = keyguardManager.newKeyguardLock("TAG");
-        }
-        keyguardLock.disableKeyguard();
-
-        ContinueLockUnLock=false; // interromp le cycle unlock/lock
-        Log.e("WakeUp Manager", "Réveil");
-    }
-    private void wakedownScreen() {
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
-        }
-        if (mWakeLock.isHeld()) mWakeLock.release();
-
-        if (keyguardLock==null) {
-            KeyguardManager keyguardManager = (KeyguardManager) getApplicationContext().getSystemService(Context.KEYGUARD_SERVICE);
-            keyguardLock = keyguardManager.newKeyguardLock("TAG");
-        }
-        // keyguardLock.reenableKeyguard();
-        ContinueLockUnLock=true; // autorise le cycle unlock/lock
-        UnLockLock();
-        Log.e("WakeUp Manager", "Dodo");
-    }
-
-    private boolean ContinueLockUnLock=false;
-
-    private void UnLockLock(){
-        Log.e("WakeUp Manager", "unlock");
-        if (mWakeLock!=null)  mWakeLock.acquire();
-        new Handler().postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                if (ContinueLockUnLock)LockUnLock();
-            }
-        }, 1000);
-    }
-
-    private void LockUnLock(){
-        Log.e("WakeUp Manager", "lock");
-        if (mWakeLock!=null)if (mWakeLock.isHeld()) mWakeLock.release();
-        new Handler().postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                UnLockLock();
-            }
-        },  1500000);
-    }
-    // fin fonctions sortir de veille
     //---------------------------
 
     UsbSerialInterface.UsbReadCallback mCallback;
@@ -431,10 +367,15 @@ public class ServiceUSBToIP extends Service {
             {
                 // Que peut on faire ?
                 if (Contenu.equals("micheal jordan est mort")){
-                    wakeupScreen();
+                    activity.wakeupScreen();
+
+                    DemarreVideo();
+                }
+                if (Contenu.equals("micheal jordan est pop")){
+                    mVideo.Testicule();
                 }
                 if (Contenu.equals("micheal jordan est vivant")){
-                    wakedownScreen();
+                    activity.wakedownScreen();
                 }
             }
 
@@ -497,10 +438,53 @@ public class ServiceUSBToIP extends Service {
         }
     }
 
+
+    /******
+     *  crée une connection
+     */
+    Intent VideoIntent;
+    Intent ServiceVideoIntent;
+    VideoActivity.ForTheService mVideo;
+
+    private void DemarreVideo() {
+        VideoIntent= new Intent(ServiceUSBToIP.this, VideoActivity.class);
+        VideoIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(VideoIntent);
+
+        ServiceVideoIntent= new Intent(ServiceUSBToIP.this,
+                    VideoActivity.ForTheService.class);
+        bindService(ServiceVideoIntent,mConnectionVideo,Context.BIND_AUTO_CREATE);
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnectionVideo = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            VideoActivity.ForTheService.LocalBinder binder =
+                        (VideoActivity.ForTheService.LocalBinder) service;
+            mVideo = binder.getService(); //Get instance of your service!
+            mVideo.registerClient(ServiceUSBToIP.this); //Activity register in the service as client for callabcks!
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0)  {
+            //mBound = false;
+        }
+    };
+    //callbacks interface pour dialoguer avec
+    public void TimeOutVideo(){
+        //  pour l'instant rien de défini
+        Toast.makeText( this ,"fin!", Toast.LENGTH_LONG).show();
+        SendMessageToTCP("<Message cool>=<timeout video>");
+    }
+
+    // fin de la liaison avec le service de VideoActivity
     //--------------------------------------------
     // Binder given to clients
     Callbacks activity;
-
     /**
      * Class used for the client Binder.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with IPC.
@@ -524,7 +508,7 @@ public class ServiceUSBToIP extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
-    public class LocalBinder extends Binder {
+    class LocalBinder extends Binder {
         ServiceUSBToIP getService() {
             // Return this instance of LocalService so clients can call public methods
             return ServiceUSBToIP.this;
@@ -549,5 +533,7 @@ public class ServiceUSBToIP extends Service {
     //callbacks interface for communication with service clients!
     public interface Callbacks{
         void setUiEnabled(boolean bool);
+        void wakeupScreen();
+        void wakedownScreen();
     }
 }

@@ -10,6 +10,7 @@ ne pas oublier dans le gradle app :
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,9 +18,11 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
@@ -58,6 +61,7 @@ import java.io.IOException;
 import android.os.Looper;
 import java.io.BufferedOutputStream;
 import android.graphics.Matrix;
+
 
 
 public class VideoActivity extends Activity implements MediaCaptureCallback
@@ -157,6 +161,10 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                             capturer.Stop();
                             led.setImageResource(R.drawable.led_green);
                             mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
+                            //-------------------------------------------------------
+                            // projet Arduino everywhere préviens le service que la video est arrêté
+                            ForTheService.backForTheService.TimeOutVideo();
+                            //-------------------------------------------------------
                         }else
                         if(rtmp_status != (-1)){
 
@@ -955,4 +963,50 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    /*****
+     *  tentative de bind
+     */
+    public static class ForTheService extends Service{
+
+
+        private final IBinder mBinder = new VideoActivity.ForTheService.LocalBinder();
+
+        class LocalBinder extends Binder {
+            VideoActivity.ForTheService getService() {
+                // Return this instance of LocalService so clients can call public methods
+                return VideoActivity.ForTheService.this;
+            }
+        }
+        //Here Activity register to the service as Callbacks client
+        public void registerClient(ServiceUSBToIP ThePilotingService){
+                backForTheService = (Callbacks)ThePilotingService; // avec un callback static plus besoin de this
+
+                /* if(this.activity!=null){
+                //    this.activity.setUiEnabled(isSerialPortOpen);    // ca c'est car copié de serviceusbtoip
+                } */
+            }
+
+        //@Override
+        public IBinder onBind(Intent intent) {
+            return mBinder;
+        }
+
+        public void Testicule(){
+            VideoActivity.Callexterne(this);
+        }
+
+        static Callbacks backForTheService;
+        public interface Callbacks {
+            void TimeOutVideo();
+        }
+    }
+    private static void Callexterne(VideoActivity.ForTheService Ohtoi){
+        Toast.makeText( Ohtoi ,"Oh ben c'est cool!", Toast.LENGTH_LONG).show();
+    }
+    /* exemples
+    private void turlututu(){
+
+        ForTheService.backForTheService.TimeOutVideo();
+    } */
 }
