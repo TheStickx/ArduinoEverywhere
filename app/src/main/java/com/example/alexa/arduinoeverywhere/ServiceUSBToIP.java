@@ -561,12 +561,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         }
     };
     //callbacks interface pour dialoguer avec
-    public void TimeOutVideo(){
-        //  pour l'instant rien de défini
-        Toast.makeText( this ,"relaunch!", Toast.LENGTH_LONG).show();
-        //SendMessageToTCP("<Message cool>=<timeout video>");
-        mVideo.StartVideo();
-    }
     public void FlushStarted(String flush){
         String tFlush =  flush.substring(0,flush.length()-8) ;
         SendMessageToTCP("<video>=<flush=" + tFlush +">");

@@ -53,6 +53,7 @@ import veg.mediacapture.sdk.MediaCaptureConfig;
 import veg.mediacapture.sdk.MediaCaptureConfig.CaptureModes;
 import veg.mediacapture.sdk.MediaCaptureConfig.CaptureVideoResolution;
 //import veg.mediacapture.sdk.test.demo.R;
+import android.util.DisplayMetrics;
 
 import android.graphics.Bitmap;
 import java.io.ByteArrayOutputStream;
@@ -164,7 +165,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                             mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
                             //-------------------------------------------------------
                             // projet Arduino everywhere préviens le service que la video est arrêté
-                            ForTheService.backForTheService.TimeOutVideo();
+                            ForTheService.TimeOutVideo();
                             //-------------------------------------------------------
                         }else
                         if(rtmp_status != (-1)){
@@ -450,9 +451,13 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
         if(true){// modif rtsp serv était false
             //dynamic creation sample code
             capturer = new MediaCapture(this, null);
-            Log.i(TAG, "=onCreate capturer="+capturer);
+            Log.i(TAG, "=onCreate capturer="+capturer);  //(250,250, Gravity.CENTER);
 
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(250,250, Gravity.CENTER);
+            DisplayMetrics metrics = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(metrics);
+
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams
+                            ( metrics.widthPixels-20, metrics.heightPixels-20, Gravity.CENTER );
             capturer.setLayoutParams(params);
 
             //
@@ -969,6 +974,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
             if (!sVideoActivity.isRec()) sVideoActivity.StartVideo();
         }
 
+
         // Ordonne La fermeture de la video
         public void StopVideoEtFermeActivity() {
             new Handler().postDelayed(new Runnable()
@@ -984,6 +990,28 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
             }, 1000);
         }
 
+        static public void TimeOutVideo(){
+            new Handler().postDelayed(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    if (sVideoActivity.isRec()) {
+                        sVideoActivity.StopVideo();
+                    }
+                    new Handler().postDelayed(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if (!sVideoActivity.isRec()) {
+                                sVideoActivity.StartVideo();
+                            }
+                        }
+                    }, 100);
+                }
+            }, 100);
+        }
         //@Override
         public IBinder onBind(Intent intent) {
             return mBinder;
@@ -991,7 +1019,6 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
 
         static Callbacks backForTheService;
         public interface Callbacks {
-            void TimeOutVideo();
             void FlushStarted(String flush);
         }
     }
