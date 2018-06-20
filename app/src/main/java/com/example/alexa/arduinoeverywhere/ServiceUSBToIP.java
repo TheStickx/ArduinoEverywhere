@@ -58,7 +58,6 @@ import android.os.PowerManager;
 import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
 import android.os.Handler;
-import android.widget.Toast;
 /*
  * Created by alexa on 04/03/2018.
  */
@@ -212,7 +211,8 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Nok>");
+        // il faudra mettre un menu pour ce choix
+        mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Ok>");
     }
 
     public void StopTCP () {

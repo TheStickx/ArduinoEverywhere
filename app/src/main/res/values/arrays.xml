@@ -134,5 +134,37 @@
         <item>32000</item>
         <item>16000</item>
      </string-array>
-     
+
+    <string-array name="USBspeed">
+        <item>300</item>
+        <item>1200</item>
+        <item>2400</item>
+        <item>4800</item>
+        <item>9600</item>
+        <item>19200</item>
+        <item>38400</item>
+        <item>115200</item>
+        <item>230400</item>
+    </string-array>
+
+
+    break;
+    case "38400 baud":
+    mPhysicaloid.setBaudrate(38400);
+    break;
+    case "576600 baud":
+    mPhysicaloid.setBaudrate(576600);
+    break;
+    case "744880 baud":
+    mPhysicaloid.setBaudrate(744880);
+    break;
+    case "115200 baud":
+    mPhysicaloid.setBaudrate(115200);
+    break;
+    case "230400 baud":
+    mPhysicaloid.setBaudrate(230400);
+    break;
+    case "250000 baud":
+    mPhysicaloid.setBaudrate(250000)
+
 </resources>
