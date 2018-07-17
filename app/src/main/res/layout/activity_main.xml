@@ -48,19 +48,16 @@
         android:layout_width="355dp"
         android:layout_height="172dp"
         android:layout_marginBottom="4dp"
-        android:layout_marginTop="8dp"
         android:text="Texte venant de l'arduino"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.517"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
-        app:layout_constraintVertical_bias="0.826" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="368dp"
-        android:layout_height="195dp"
+        android:layout_height="113dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -107,13 +104,14 @@
             android:layout_width="50dp"
             android:layout_height="42dp"
             android:layout_marginBottom="8dp"
-            android:layout_marginEnd="40dp"
+            android:layout_marginEnd="44dp"
             android:layout_marginTop="8dp"
             android:onClick="onTestService"
             android:text="CK"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/button3"
-            app:layout_constraintTop_toBottomOf="@+id/launch_set_network" />
+            app:layout_constraintTop_toBottomOf="@+id/launch_set_network"
+            app:layout_constraintVertical_bias="1.0" />
 
         <Button
             android:id="@+id/button3"
@@ -129,13 +127,41 @@
         <Button
             android:id="@+id/launch_set_network"
             android:layout_width="0dp"
-            android:layout_height="38dp"
+            android:layout_height="41dp"
             android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
             android:onClick="onLaunchSettingNetworks"
             android:text="setting_Network"
             app:layout_constraintBottom_toTopOf="@+id/StartServ"
-            tools:layout_editor_absoluteX="88dp" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/butConnect"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="368dp"
+        android:layout_height="149dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/TextRecu"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
+
+        <Button
+            android:id="@+id/select_bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:onClick="chooseDevice"
+            android:text="Select Bluetooth"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>

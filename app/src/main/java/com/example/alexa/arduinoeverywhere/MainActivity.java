@@ -119,6 +119,12 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         Toast.makeText(this.getApplicationContext(), "Serial Connection Closed!" , Toast.LENGTH_SHORT ).show();
     }
 
+    // bouton sur l'interface
+    public void chooseDevice(View view) {
+        // ouvre l'activity de settings mais avant on déconnecte le bluetooth
+        mService.ChooseDeviceBlueTooth();
+    }
+
 
     //-------------------------------------------------------
     // binding
@@ -181,11 +187,15 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
             ServiceUSBToIP.LocalBinder binder = (ServiceUSBToIP.LocalBinder) service;
             mService = binder.getService(); //Get instance of your service!
             mService.registerClient(MainActivity.this); //Activity register in the service as client for callabcks!
+
+            mService.StartBlueTooth();
             mBound = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
+
+            mService.StopBlueTooth();
             mBound = false;
         }
     };
