@@ -622,9 +622,9 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         // ouvre l'activity de settings mais avant on déconnecte le bluetooth
         mBluetoothLeService.disconnect();
 
-        Intent intent;
+        /*Intent intent;
         intent = new Intent(this, DeviceScanActivity.class);
-        startActivity(intent);
+        startActivity(intent);*/
     }
 
     // Code to manage Service lifecycle.

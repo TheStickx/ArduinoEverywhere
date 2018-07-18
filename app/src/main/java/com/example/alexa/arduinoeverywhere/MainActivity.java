@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.os.IBinder;
 import android.content.Context;
 import android.widget.Toast;
+import android.os.Handler;
 
 public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Callbacks {
 
@@ -122,7 +123,21 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
     // bouton sur l'interface
     public void chooseDevice(View view) {
         // ouvre l'activity de settings mais avant on déconnecte le bluetooth
+        /*new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                mService.ChooseDeviceBlueTooth();
+            }
+        },100); */
+
         mService.ChooseDeviceBlueTooth();
+
+        Intent intent;
+        intent = new Intent(this, DeviceScanActivity.class);
+        startActivity(intent);
+
     }
 
 
