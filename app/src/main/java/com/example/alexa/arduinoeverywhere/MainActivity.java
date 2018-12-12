@@ -100,11 +100,11 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         intent = new Intent(this,SettingNetwork.class);
         startActivityForResult(intent, 0);
     }
-
+    /*
     // Les boutons USB
     public void onClickBegin(View view) {
         mService.ClickBegin();
-    }
+    }*/
 
         // je n'utilise plus mais je garde
     public void onClickToSend(View view) {
