@@ -206,13 +206,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
             new ConnectTask().execute("");
         }
 
-        /*runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Nok>");
-            }
-        });*/
-
         while (mTcpClient == null) {
         }
         try {
@@ -220,7 +213,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // il faudra mettre un menu pour ce choix
+
         mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Ok>");
     }
 
@@ -383,6 +376,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
                 if (serialPort != null) {
                     serialPort.write(body);
                 }
+                SendDataToBlueTooth(new String(body));
             }
 
             if (Etiquette.equals("capteurs"))
@@ -620,7 +614,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
 
     public void ChooseDeviceBlueTooth() {
         // ouvre l'activity de settings mais avant on déconnecte le bluetooth
-        mBluetoothLeService.disconnect();
+        if (mBluetoothLeService != null) mBluetoothLeService.disconnect();
 
         /*Intent intent;
         intent = new Intent(this, DeviceScanActivity.class);
@@ -672,7 +666,10 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
 
                 // gestion de la réception  de données
                 // displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
-
+                // on envoie sur le réseau ce qui viens du bluetooth
+                if (mTcpClient != null) {
+                    mTcpClient.sendMessage(ByteToMsgHex(intent.getStringExtra(BluetoothLeService.EXTRA_DATA).getBytes()));
+                }
             }
         }
     };

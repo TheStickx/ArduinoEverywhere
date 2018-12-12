@@ -1,6 +1,8 @@
 package com.example.alexa.arduinoeverywhere; /**
  * Created by alexa on 04/03/2018.
  */
+import android.os.Handler;
+import android.os.StrictMode;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -45,7 +47,12 @@ public class TcpClient {
      *
      * @param message text entered by client
      */
+
+
     public void sendMessage(String message) {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         if (mBufferOut != null ) { // && !mBufferOut.checkError()) {
             if (!mBufferOut.checkError()) {
                 mBufferOut.println(message);

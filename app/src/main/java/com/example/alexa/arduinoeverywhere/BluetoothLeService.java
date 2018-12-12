@@ -152,20 +152,22 @@ public class BluetoothLeService extends Service {
         }
         */
 
-        Log.w(TAG, "broadcastUpdate()");
+        //Log.w(TAG, "broadcastUpdate()");
 
         final byte[] data = characteristic.getValue();
 
-        Log.v(TAG, "data.length: " + data.length);
+        //Log.v(TAG, "data.length: " + data.length);
 
         if (data != null && data.length > 0) {
+            /*  cette partie de code a sans doute été mise pour test
+
             final StringBuilder stringBuilder = new StringBuilder(data.length);
             for(byte byteChar : data) {
                 stringBuilder.append(String.format("%02X ", byteChar));
 
                 //Log.v(TAG, String.format("%02X ", byteChar));
-            }
-            intent.putExtra(EXTRA_DATA, new String(data) + "\n" + stringBuilder.toString());
+            } */
+            intent.putExtra(EXTRA_DATA, new String(data)); // + "\n" + stringBuilder.toString()
         }
 
         sendBroadcast(intent);
