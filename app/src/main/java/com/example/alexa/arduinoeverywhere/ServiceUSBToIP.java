@@ -192,6 +192,18 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
 
     }
 
+    public void SendMessageToUSB( String sMess ) {
+        serialPort.write(sMess.getBytes());
+    }
+
+    public void ClickToStopUSB() {
+        serialPort.close();
+        isSerialPortOpen=false;
+        if (activity != null) {
+            activity.setUiEnabled(false);
+        }
+    }
+
 
     public void BeginTCP( String tmpTCPAdress , int tmpTCPPort ) {
         // ces variables serviront plus tard dans
@@ -227,18 +239,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     public void SendMessageToTCP( String sMess ) {
         if (mTcpClient != null) {
             mTcpClient.sendMessage(sMess);
-        }
-    }
-
-    public void SendMessageToUSB( String sMess ) {
-        serialPort.write(sMess.getBytes());
-    }
-
-    public void ClickToStopUSB() {
-        serialPort.close();
-        isSerialPortOpen=false;
-        if (activity != null) {
-            activity.setUiEnabled(false);
         }
     }
 

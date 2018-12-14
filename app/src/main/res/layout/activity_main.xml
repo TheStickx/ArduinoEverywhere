@@ -7,42 +7,6 @@
     android:layout_height="match_parent"
     tools:context="com.example.alexa.arduinoeverywhere.MainActivity">
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/constraintLayout2"
-        android:layout_width="375dp"
-        android:layout_height="49dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.428"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <Button
-            android:id="@+id/ButtonBegin"
-            android:layout_width="84dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="4dp"
-            android:onClick="onClickBegin"
-            android:text="Begin"
-            app:layout_constraintEnd_toStartOf="@+id/ButtonStop"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/ButtonStop"
-            android:layout_width="84dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="8dp"
-            android:onClick="onClickToStop"
-            android:text="Stop"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </android.support.constraint.ConstraintLayout>
-
     <TextView
         android:id="@+id/TextRecu"
         android:layout_width="355dp"
@@ -60,10 +24,11 @@
         android:layout_height="113dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2"
+        app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
         <Button
@@ -142,7 +107,7 @@
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="368dp"
-        android:layout_height="149dp"
+        android:layout_height="204dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"

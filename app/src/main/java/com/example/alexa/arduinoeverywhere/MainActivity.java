@@ -45,10 +45,12 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         // section TCP client
         //---------------------------
         // section USB
+        /*
         USBstartButton = findViewById(R.id.ButtonBegin);
         //USBsendButton = findViewById(R.id.ButtonSend);
         //USBclearButton = findViewById(R.id.ButtonClear);
         USBstopButton = findViewById(R.id.ButtonStop);
+        */
         //USBTextAEnvoyer = findViewById(R.id.EditTextAEnvoyer); //editText = (EditText) findViewById(R.id.EditTextAEnvoyer);
         // USBTextRecu = findViewById(R.id.TextRecu);
         // section USB
@@ -101,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         startActivityForResult(intent, 0);
     }
 
+    /*
     // Les boutons USB
     public void onClickBegin(View view) {
         mService.ClickBegin();
@@ -118,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         setUiEnabled(false);
         // tvAppend(USBTextRecu,"\nSerial Connection Closed! \n");
         Toast.makeText(this.getApplicationContext(), "Serial Connection Closed!" , Toast.LENGTH_SHORT ).show();
-    }
+    }*/
 
     // bouton sur l'interface
     public void chooseDevice(View view) {
@@ -218,9 +221,11 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
     @Override
     //---------------------------modif service mis en callback
     public void setUiEnabled(boolean bool) {
+        /*
         USBstartButton.setEnabled(!bool);
         // USBsendButton.setEnabled(bool);
         USBstopButton.setEnabled(bool);
+        */
         // USBTextAEnvoyer.setEnabled(bool);
     }
 }
