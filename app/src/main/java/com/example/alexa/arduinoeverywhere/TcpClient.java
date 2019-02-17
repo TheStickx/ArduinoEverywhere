@@ -1,4 +1,4 @@
-package com.example.alexa.arduinoeverywhere; /**
+package com.example.alexa.arduinoeverywhere; /*
  * Created by alexa on 04/03/2018.
  */
 import android.os.Handler;
@@ -26,20 +26,23 @@ public class TcpClient {
     // message to send to the server
     private String mServerMessage;
     // sends message received notifications
-    private OnMessageReceived mMessageListener = null;
+    private OnMessageReceived mMessageListener;
+    // Inform That Sochet is connected
+    private OnSocketConnected mSocketConnected;
     // while this is true, the server will continue running
     private boolean mRun = false;
     // used to send messages
     private PrintWriter mBufferOut;
     // used to read messages from the server
     private BufferedReader mBufferIn;
-    private Socket socket;
+    public Socket socket;
 
     /**
      * Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TcpClient(OnMessageReceived listener) {
+    public TcpClient(OnMessageReceived listener, OnSocketConnected listenSocket) {
         mMessageListener = listener;
+        mSocketConnected = listenSocket;
     }
 
     /**
@@ -75,11 +78,20 @@ public class TcpClient {
         }
 
         if (mBufferIn != null) {
-            try {mBufferIn.close();} catch (Exception e) { Log.e("Buf", "fermeture mBufferIn", e);}
+            try {
+                socket.shutdownInput();
+                /*InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
+
+
+                //create a socket to make the connection with the server
+                socket = new Socket(serverAddr, SERVER_PORT);*/
+
+                mBufferIn.close();
+            } catch (Exception e) { Log.e("TCP Client/stopClient", "fermeture mBufferIn", e);}
         }
 
-        /*try {socket.close();} catch (Exception e) { Log.e("TCP", "fermeture socket", e);}
-        Log.e("TCP Client", "C:Point 14");*/
+        try {socket.close();} catch (Exception e) { Log.e("TCP Client/stopClient", "fermeture socket", e);}
+        Log.e("TCP Client/stopClient", "C:Point 14");
 
         mMessageListener = null;
         mBufferIn = null;
@@ -100,6 +112,7 @@ public class TcpClient {
             //create a socket to make the connection with the server
             socket = new Socket(serverAddr, SERVER_PORT);
 
+
             try {
                 //sends the message to the server
                 mBufferOut = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
@@ -107,11 +120,22 @@ public class TcpClient {
                 //receives the message which the server sends back
                 mBufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
+                // informe le service que le socket est connecté
+                mSocketConnected.SocketConnected(socket.isConnected());
+
                 //in this while the client listens for the messages sent by the server
                 while (mRun) {
 
                     // Il est clair que cette fonction s'arrète jusqu'à qu'on recoive un message
-                    mServerMessage = mBufferIn.readLine();
+                    try {
+                        mServerMessage = mBufferIn.readLine();
+                    }catch (Exception e) {
+                        Log.e("TCP Client/Run", "Run", e);
+                        mServerMessage = null;
+                        mRun = false;
+                    }
+
+                    if ( mBufferIn == null )mRun = false;
 
                     if (mServerMessage != null && mMessageListener != null) {
 
@@ -125,7 +149,7 @@ public class TcpClient {
 
             } catch (Exception e) {
 
-                Log.e("TCP", "S: Error", e);
+                Log.e("TCP Client/Run", "S: Error", e);
 
             } finally {
                 //the socket must be closed. It is not possible to reconnect to this socket
@@ -136,7 +160,7 @@ public class TcpClient {
 
         } catch (Exception e) {
 
-            Log.e("TCP", "C: Socket Error", e);
+            Log.e("TCP Client/Run", "C: Socket Error", e);
 
         }
 
@@ -145,7 +169,10 @@ public class TcpClient {
     //Declare the interface. The method messageReceived(String message) will must be implemented in the MyActivity
     //class at on asynckTask doInBackground
     public interface OnMessageReceived {
-        public void messageReceived(String message);
+        void messageReceived(String message);
+    }
+    public interface OnSocketConnected {
+        void SocketConnected(boolean Connected);
     }
 
 }

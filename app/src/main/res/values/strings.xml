@@ -133,4 +133,8 @@
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
 
+    <!-- Temp -->
+    <string name="message_numero">Numéro</string>
+    <string name="message_Connecté">Connecté</string>
+
 </resources>

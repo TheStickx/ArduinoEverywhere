@@ -18,41 +18,44 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.os.IBinder;
 import android.content.Context;
 import android.widget.Toast;
 import android.os.Handler;
 
+import java.util.Locale;
+
 public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Callbacks {
 
-    // USB
-    Button USBstartButton, USBstopButton; //USBsendButton, USBclearButton,
-    //EditText USBTextAEnvoyer;
-    //TextView USBTextRecu;
+    TextView USBTextRecu;
+    TextView mTextNbrAppli;
 
     // pour maniper les prefs enregistrées
     private SharedPreferences settings=null;
+
+    // Les boutons image
+    private ImageButton mBtnServer = null;
+    private ImageButton mBtnBlue = null;
+    private ImageView   ImgAppli;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        mBtnServer = (ImageButton) findViewById(R.id.imgBserver);
+        mBtnBlue = (ImageButton) findViewById(R.id.imgBbluetooth);
+        ImgAppli = (ImageView)findViewById(R.id.imgVApplis);
+        mTextNbrAppli = findViewById(R.id.textNbrAppli);
         //---------------------------
         // section TCP client
         // section TCP client
         //---------------------------
         // section USB
-        /*
-        USBstartButton = findViewById(R.id.ButtonBegin);
-        //USBsendButton = findViewById(R.id.ButtonSend);
-        //USBclearButton = findViewById(R.id.ButtonClear);
-        USBstopButton = findViewById(R.id.ButtonStop);
-        */
-        //USBTextAEnvoyer = findViewById(R.id.EditTextAEnvoyer); //editText = (EditText) findViewById(R.id.EditTextAEnvoyer);
-        // USBTextRecu = findViewById(R.id.TextRecu);
+        USBTextRecu = findViewById(R.id.TextRecu);
         // section USB
         //---------------------------
         // section binding avec callback
@@ -60,40 +63,26 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         //--------------------------- startService bindService
         // gestion des preferences
         settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        if ( serviceIntent==null ) {
+            serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
+            startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
+            bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        }
+        else Toast.makeText(this.getApplicationContext(), "service already running" , Toast.LENGTH_SHORT ).show();
     }
-
-    private void tvAppend(TextView tv, CharSequence text) {
-        final TextView ftv = tv;
-        final CharSequence ftext = text;
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ftv.append(ftext);
-            }
-        }); }
-
 
     //-------------------------------------------------------
     // traitement des boutons
     // Les boutons TCP
     public void onClickBeginTCP(View View) {//new ConnectTask().execute("");
-        /* avant les prefs
-        mService.BeginTCP(EditIPAddress.getText().toString()
-                ,Integer.parseInt( EditIPPort.getText().toString())); */
+/*
         mService.BeginTCP(settings.getString("pref_AdressIP", "192.168.1.20")
-                ,Integer.parseInt( settings.getString("pref_Port", "13000")));
-
+                ,Integer.parseInt( settings.getString("pref_Port", "13000")));*/
     }
 
     public void onClickStop(View View) {
-        mService.StopTCP();
-    }
-
-        // je n'utilise plus mais sais t'on jamais
-    public void onClickSend(View View) {
-        mService.SendMessageToTCP("<Message cool>=<" +
-                "blabla" + ">");   //TCPTextAEnvoyer.getText().toString() +
+        /*mService.StopTCP();*/
     }
 
     public void onLaunchSettingNetworks(View view){
@@ -103,39 +92,11 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         startActivityForResult(intent, 0);
     }
 
-    /*
-    // Les boutons USB
-    public void onClickBegin(View view) {
-        mService.ClickBegin();
-    }
-
-        // je n'utilise plus mais je garde
-    public void onClickToSend(View view) {
-        String MessageUSB = "Blah"; // USBTextAEnvoyer.getText().toString();
-        mService.SendMessageToUSB( MessageUSB );
-        // tvAppend(USBTextRecu, "\nData Sent : " + MessageUSB + "\n");
-    }
-
-    public void onClickToStop(View view) {
-        mService.ClickToStopUSB();
-        setUiEnabled(false);
-        // tvAppend(USBTextRecu,"\nSerial Connection Closed! \n");
-        Toast.makeText(this.getApplicationContext(), "Serial Connection Closed!" , Toast.LENGTH_SHORT ).show();
-    }*/
-
     // bouton sur l'interface
     public void chooseDevice(View view) {
         // ouvre l'activity de settings mais avant on déconnecte le bluetooth
-        /*new Handler().postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                mService.ChooseDeviceBlueTooth();
-            }
-        },100); */
 
-        mService.ChooseDeviceBlueTooth();
+        mService.BeforeChooseDeviceBlueTooth();
 
         Intent intent;
         intent = new Intent(this, DeviceScanActivity.class);
@@ -151,33 +112,13 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
     ServiceUSBToIP mService;
     boolean mBound = false;
 
-    /* @Override
-    protected void onStart() {
-        super.onStart();
-        // Bind to LocalService
-        //Intent intent = new Intent(this, ServiceUSBToIP.class);
-        //bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        // unbindService(mConnection); // il faut pas car ça arrète le service
-        // stopService(serviceIntent); // il faut pas car ça arrète le service
-        mBound = false;
-    }*/
-
-    /*
-    private void DemarageDuService(){
-        serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
-        startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
-        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
-    }*/
-
     public void onStartService(View view){
-        serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
-        startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
-        bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        /*if ( serviceIntent==null ) {
+            serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
+            startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
+            bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+        }
+        else Toast.makeText(this.getApplicationContext(), "service already running" , Toast.LENGTH_SHORT ).show();*/
     }
 
     public void onTestService(View view){
@@ -189,8 +130,12 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
 
     public void onStopService(View view){
         //try {
-            unbindService(mConnection);
-            stopService(serviceIntent);
+            if ( serviceIntent!=null ) {
+                unbindService(mConnection);
+                stopService(serviceIntent);
+                mService.stopSelf();
+                serviceIntent=null;
+            }
         //}  catch (Exception e){tvAppend(USBTextRecu,e.printStackTrace());}
     }
 
@@ -213,20 +158,54 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
 
-            mService.StopBlueTooth();
             mBound = false;
         }
     };
 
     @Override
     //---------------------------modif service mis en callback
-    public void setUiEnabled(boolean bool) {
-        /*
-        USBstartButton.setEnabled(!bool);
-        // USBsendButton.setEnabled(bool);
-        USBstopButton.setEnabled(bool);
-        */
-        // USBTextAEnvoyer.setEnabled(bool);
+
+    public void montremoiTonTimer (int bimboum, boolean ConnecteTcp, boolean connectBlueTooth, int NombreDappli) {
+        final int fBimboum = bimboum, fNombreDappli = NombreDappli;
+        final boolean fConnecteTcp = ConnecteTcp, fconnectBlueTooth = connectBlueTooth;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                String sDonneEtat;
+
+                if (fConnecteTcp) {
+                    sDonneEtat = "Server connecté | ";
+                    mBtnServer.setImageResource(R.drawable.serveur_on);
+                } else {
+                    sDonneEtat = "Server non connecté | ";
+                    mBtnServer.setImageResource(R.drawable.serveur_off);
+                }
+
+                if (fconnectBlueTooth) {
+                    sDonneEtat += "BlueTooth connecté | ";
+                    mBtnBlue.setImageResource(R.drawable.bluetooth_on);
+                } else {
+                    sDonneEtat += "BlueTooth non connecté | ";
+                    mBtnBlue.setImageResource(R.drawable.bluetooth_off);
+                }
+
+                sDonneEtat +="Nombre d'appli:" + fNombreDappli;
+                if ( fNombreDappli == 0 ) {
+                    ImgAppli.setImageResource(R.drawable.appli_off);
+                } else {
+                    ImgAppli.setImageResource(R.drawable.appli_on);
+                    if ( fNombreDappli > 1  ) {
+                        mTextNbrAppli.setText( String.valueOf(fNombreDappli) );
+                    }
+                }
+
+                /* USBTextRecu.setText( String.format(Locale.FRANCE, "%s %d\r\n%s"
+                        , getResources().getString(R.string.message_numero)
+                        , fBimboum
+                        , sDonneEtat) ); */
+            }
+        } );
     }
 }
 

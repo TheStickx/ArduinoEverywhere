@@ -58,6 +58,8 @@ import java.io.StringWriter;
 import java.io.PrintWriter;
 import android.app.Service;
 import java.io.*;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 // permettre le réveil du téléphone
@@ -73,136 +75,17 @@ import android.widget.Toast;
 
 public class ServiceUSBToIP extends Service implements VideoActivity.ForTheService.Callbacks {
 
-    public final String ACTION_USB_PERMISSION = "com.hariharan.arduinousb.USB_PERMISSION";
-    UsbManager usbManager;
-    UsbDevice device;
-    UsbSerialDevice serialPort;
-    UsbDeviceConnection connection;
-    boolean isSerialPortOpen;
-
     //---------------------------
     // section TCP client
+    ConnectTask mConnectTask;
     TcpClient mTcpClient;
     String TCPAdress;
     int TCPPort;
 
     // section TCP client
     //---------------------------
-
+    int iNbrApplis=0;
     //---------------------------
-
-    UsbSerialInterface.UsbReadCallback mCallback;
-
-    {
-        mCallback = new UsbSerialInterface.UsbReadCallback() { //Defining a Callback which triggers whenever data is read.
-            @Override
-            public void onReceivedData(byte[] arg0) {
-                String data = null;
-
-                try {
-                    //---------------------------
-                    // section TCP client
-                    // ici on recoit de l'USB et on envoie vers le réseau
-                    if (mTcpClient != null) {
-
-                        if (arg0.length!=0) mTcpClient.sendMessage(ByteToMsgHex(arg0));
-
-                    } else {
-                        data = new String(arg0, "UTF-8");
-
-                    }
-                } catch (UnsupportedEncodingException e) {
-
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e.printStackTrace(pw);
-                    String sStackTrace = sw.toString();
-                    Log.d("USB", "Err UsbRead : " + sStackTrace);
-                }
-            }
-        };
-    }
-
-    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() { //Broadcast Receiver to automatically start and stop the Serial connection.
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(ACTION_USB_PERMISSION)) {
-                boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED);
-                if (granted) {
-                    connection = usbManager.openDevice(device);
-                    serialPort = UsbSerialDevice.createUsbSerialDevice(device, connection);
-                    if (serialPort != null) {
-                        if (serialPort.open()) { //Set Serial Connection Parameters.
-                            isSerialPortOpen=true;
-                            if(activity!=null){
-                                activity.setUiEnabled(true); // modif service mis en call back
-                            }
-                            serialPort.setBaudRate(9600);
-                            serialPort.setDataBits(UsbSerialInterface.DATA_BITS_8);
-                            serialPort.setStopBits(UsbSerialInterface.STOP_BITS_1);
-                            serialPort.setParity(UsbSerialInterface.PARITY_NONE);
-                            serialPort.setFlowControl(UsbSerialInterface.FLOW_CONTROL_OFF);
-                            serialPort.read(mCallback);
-
-                            Log.d("USB", "Serial Connection Opened!");
-
-                        } else {
-                            Log.d("SERIAL", "PORT NOT OPEN");
-                        }
-                    } else {
-                        Log.d("SERIAL", "PORT IS NULL");
-                    }
-                } else {
-                    Log.d("SERIAL", "PERM NOT GRANTED");
-                }
-            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_ATTACHED)) {
-                ClickBegin ();
-            } else if (intent.getAction().equals(UsbManager.ACTION_USB_DEVICE_DETACHED)) {
-                ClickToStopUSB();
-
-            }
-        }
-
-
-    };
-
-    //---------------------------modif service
-    public void ClickBegin ()  {
-    //---------------------------modif service
-        HashMap<String, UsbDevice> usbDevices = usbManager.getDeviceList();
-        if (!usbDevices.isEmpty()) {
-            boolean keep = true;
-            for (Map.Entry<String, UsbDevice> entry : usbDevices.entrySet()) {
-                device = entry.getValue();
-                int deviceVID = device.getVendorId();
-                if (deviceVID == 0x2341)//Arduino Vendor ID
-                {
-                    PendingIntent pi = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-                    usbManager.requestPermission(device, pi);
-                    keep = false;
-                } else {
-                    connection = null;
-                    device = null;
-                }
-
-                if (!keep)
-                    break;
-            }
-        }
-
-    }
-
-    public void SendMessageToUSB( String sMess ) {
-        serialPort.write(sMess.getBytes());
-    }
-
-    public void ClickToStopUSB() {
-        serialPort.close();
-        isSerialPortOpen=false;
-        if (activity != null) {
-            activity.setUiEnabled(false);
-        }
-    }
 
 
     public void BeginTCP( String tmpTCPAdress , int tmpTCPPort ) {
@@ -210,30 +93,32 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         TCPAdress = tmpTCPAdress;
         TCPPort = tmpTCPPort;
         if (mTcpClient == null) {
-            new ConnectTask().execute("");
+            try {
+                mConnectTask = new ConnectTask();
+                mConnectTask.execute("");
 
-        } else {
-            mTcpClient.stopClient();
-            mTcpClient = null;
-            new ConnectTask().execute("");
+            }catch (Exception e) {
+                Log.e("Svc/Begin TCP", "Create mConnectTask", e);
+            }
         }
-
-        while (mTcpClient == null) {
-        }
-        try {
-            Thread.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Ok>");
     }
 
     public void StopTCP () {
-        if (mTcpClient != null) {
-            mTcpClient.stopClient();
-            mTcpClient = null;
-        }
+        /*new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {*/
+                if (mTcpClient != null) {
+                    mTcpClient.stopClient();
+                    Log.e("Svc/STOP TCP", "stop TCP");
+                    mConnectTask.cancel(true);
+                    Log.e("Svc/STOP TCP", "stop ConTask");
+                    mConnectTask = null;
+                    mTcpClient = null;
+                } else { Log.e("Svc/STOP TCP", "Pas stop"); }
+            /*}
+        }, 1);*/
     }
 
     public void SendMessageToTCP( String sMess ) {
@@ -369,13 +254,27 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
             {
             }
 
+            // ce message est la réponse à CheckTask{run()}
+            if (Etiquette.equals("NBAppli") )
+            {
+                try {
+                    iNbrApplis = Integer.parseInt(Contenu);
+                } catch(Exception e) {
+                    iNbrApplis=0;
+                }
+                IsServerResponding=true;  // la preuve que oui
+            }
+
             if (Etiquette.equals("message hexa"))
             {
                 // On envoy dans le port série le message
                 byte [] body=HexStringToByte (Contenu);
+                /* suppression USB
                 if (serialPort != null) {
                     serialPort.write(body);
                 }
+                */
+                // On envoy dans le bluetooth le message
                 SendDataToBlueTooth(new String(body));
             }
 
@@ -411,6 +310,8 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         protected TcpClient doInBackground(String... message) {
 
             //we create a TCPClient object
+
+            Log.e("Svc/ConnectTask/dobgrd", "before new tcp client");
             mTcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
                 @Override
                 //here the messageReceived method is implemented
@@ -418,12 +319,27 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
                     //this method calls the onProgressUpdate
                     publishProgress(message);
                 }
+            }, new TcpClient.OnSocketConnected() {
+                @Override
+                public void SocketConnected(boolean Connected) {
+                    if (Connected) {
+
+                        mTcpClient.sendMessage("<client description>=<side=arduino_side multicon=Ok>");
+                        Log.e("Svc/Begin TCP", "Send Message");
+
+                    }
+                    mJobCheck.CheckTaskStart();
+                }
             });
 
 
+            Log.e("Svc/ConnectTask/dobgrd", "new tcp client");
             mTcpClient.SERVER_IP = TCPAdress;
+            Log.e("Svc/ConnectTask/dobgrd", "tcp adress");
             mTcpClient.SERVER_PORT = TCPPort;
+            Log.e("Svc/ConnectTask/dobgrd", "tcp port");
             mTcpClient.run();
+            Log.e("Svc/ConnectTask/dobgrd", "tcp run");
 
             return null;
         }
@@ -577,7 +493,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     private SharedPreferences settings=null;
     private String mDeviceAddress;
     private BluetoothLeService mBluetoothLeService;
-    private boolean mConnected = false;
+    private boolean mBlueToothConnected = false;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
             new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
     private BluetoothGattCharacteristic bluetoothGattCharacteristicHM_10;
@@ -591,7 +507,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         //--------------------------------------------------
         //      Bluetooth
         // Récupère l'@MAC bluetooth
-        settings = PreferenceManager.getDefaultSharedPreferences(this);
         mDeviceAddress = settings.getString("BlueMacAdress", "undefined");
         // active le service  seulement si mDeviceAddress est défini
         if ( mDeviceAddress != "undefined") {
@@ -612,13 +527,9 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         unbindService(mServiceConnection);
     }
 
-    public void ChooseDeviceBlueTooth() {
-        // ouvre l'activity de settings mais avant on déconnecte le bluetooth
+    public void BeforeChooseDeviceBlueTooth() {
+        // Avant d'ouvrir l'activity de settings . on déconnecte le bluetooth
         if (mBluetoothLeService != null) mBluetoothLeService.disconnect();
-
-        /*Intent intent;
-        intent = new Intent(this, DeviceScanActivity.class);
-        startActivity(intent);*/
     }
 
     // Code to manage Service lifecycle.
@@ -651,11 +562,13 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                mConnected = true;
+                mBlueToothConnected = true;
+                mJobCheck.CheckTaskStart();
                 // updateConnectionState(R.string.connected);
                 // invalidateOptionsMenu();  ici on peut générer un évent pour signaler connecté
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                mConnected = false;
+                mBlueToothConnected = false;
+                mJobCheck.CheckTaskStart();
                 // updateConnectionState(R.string.disconnected);
                 // invalidateOptionsMenu();  ici on peut générer un évent pour signaler déconnecté
                 //  clearUI();    Typiquement j'en veux pas
@@ -808,14 +721,127 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         //Do what you need in onStartCommand when service has been started
         //---------------------------
         // ici ce qui était avant dans le OnCreate
-        usbManager = (UsbManager) getSystemService(this.USB_SERVICE);
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_USB_PERMISSION);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        registerReceiver(broadcastReceiver, filter);
+
+        mJobCheck.CheckTaskStart();
+
+        settings = PreferenceManager.getDefaultSharedPreferences(this);
+
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                BeginTCP(settings.getString("pref_AdressIP", "192.168.1.20")
+                        ,Integer.parseInt( settings.getString("pref_Port", "13000")));
+            }
+        }, 50);
 
         return START_NOT_STICKY;
+    }
+
+    public void onDestroy () {
+        mJobCheck.CheckTaskDestroy();
+        StopBlueTooth();
+
+        new Handler().postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                StopTCP();
+            }
+        }, 1);
+
+        System.exit(0);
+    }
+    // ---------------------------------------------------
+    // ici je créer un timer qui va faire des opérations sur le
+    // fichier video
+    JobCheck mJobCheck = new JobCheck();
+    boolean IsServerResponding=false, IsRessetingSocket=false;
+
+    class JobCheck {
+        Timer timer = new Timer();
+        TimerTask mCheckTask = new CheckTask();
+
+        int bimCombien;
+        long duree;
+
+        class CheckTask extends TimerTask {
+
+            public void run() {
+                boolean bSocketConnected;
+                /* try {
+                    bSocketConnected = mTcpClient.socket.isConnected();
+                } catch (Exception e) { bSocketConnected=false; }*/
+
+                if(activity!=null) {   // bSocketConnected
+                    activity.montremoiTonTimer( bimCombien , IsServerResponding
+                            , mBlueToothConnected, iNbrApplis);
+                }
+
+                // Gestion du reset de connection
+                try {
+                    bSocketConnected = mTcpClient.socket.isConnected();
+                } catch (Exception e) { bSocketConnected=false; }
+
+                if (!IsServerResponding){
+
+                    // si not responding alors que connected => reset de connection
+                    if ( bSocketConnected ){
+                        // s'il ne répond pas alors qu'il est connecté il faut reseter
+                        if (IsRessetingSocket) StopTCP ();
+                        duree = 1000;
+                        IsRessetingSocket = true;
+                    } else {
+                        // s'il ne répond pas, qu'il n'est pas connecté et qu'on l'a reseté
+                        // on redémarre
+                        if ( IsRessetingSocket ) {
+                            BeginTCP(settings.getString("pref_AdressIP", "192.168.1.20")
+                                    ,Integer.parseInt( settings.getString("pref_Port", "13000")));
+                            IsRessetingSocket = false;
+                            duree = 1000;
+                        } else if (duree<30000)duree+=100;
+                        // s'il ne répond pas, qu'il n'est pas connecté et qu'on n'a pas lancé de reset
+                        // On ne fait rien.
+                    }
+                }
+                else // on stabilise la durée si on atteind 30sec
+                    if (duree<30000)duree+=100;
+
+                // -------------------------------------------------
+                // ping du serveur  et statut BlueTooth
+                IsServerResponding = false;  // on verra si le serveur répond
+                if (mBlueToothConnected) {
+                    SendMessageToTCP("<BTstat>=<OK>");
+                } else {
+                    SendMessageToTCP("<BTstat>=<NOK>");
+                }
+
+                ChangeFrequence();
+                bimCombien++;
+            }
+        }
+
+        void ChangeFrequence(  ) {
+            timer.cancel();
+            mCheckTask.cancel();
+            timer = new Timer();
+            mCheckTask = new CheckTask();
+            timer.scheduleAtFixedRate(mCheckTask, duree, duree);
+        }
+
+        void CheckTaskStart() {
+            duree=1000;
+            ChangeFrequence();
+            bimCombien=0;
+        }
+
+        void CheckTaskDestroy() {
+            timer.cancel();
+            mCheckTask.cancel();
+        }
+
     }
 
     private final IBinder mBinder = new LocalBinder();
@@ -832,7 +858,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         this.activity = (Callbacks)activity;
 
         if(this.activity!=null){
-            this.activity.setUiEnabled(isSerialPortOpen);
+            // USB   this.activity.setUiEnabled(isSerialPortOpen);
         }
     }
 
@@ -844,6 +870,6 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     /** method for clients */
     //callbacks interface for communication with service clients!
     public interface Callbacks{
-        void setUiEnabled(boolean bool);
+        void montremoiTonTimer (int bimboum, boolean ConnecteTcp, boolean connectBlueTooth, int NombreDappli);
     }
 }

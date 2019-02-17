@@ -10,18 +10,20 @@
     <TextView
         android:id="@+id/TextRecu"
         android:layout_width="355dp"
-        android:layout_height="172dp"
+        android:layout_height="286dp"
         android:layout_marginBottom="4dp"
+        android:layout_marginTop="8dp"
         android:text="Texte venant de l'arduino"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.517"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout"
         android:layout_width="368dp"
-        android:layout_height="113dp"
+        android:layout_height="174dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
@@ -31,102 +33,72 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
-        <Button
-            android:id="@+id/butConnect"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:onClick="onClickBeginTCP"
-            android:text="Connect"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <Button
-            android:id="@+id/butStop"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginBottom="8dp"
-            android:onClick="onClickStop"
-            android:text="STOP"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <Button
-            android:id="@+id/StartServ"
-            android:layout_width="60dp"
-            android:layout_height="40dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="8dp"
+        <ImageButton
+            android:id="@+id/imgBserver"
+            android:layout_width="83dp"
+            android:layout_height="83dp"
             android:layout_marginStart="8dp"
-            android:onClick="onStartService"
-            android:text="ST"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/CheckServ"
-            app:layout_constraintHorizontal_bias="0.391"
-            app:layout_constraintStart_toEndOf="@+id/butStop" />
-
-        <Button
-            android:id="@+id/CheckServ"
-            android:layout_width="50dp"
-            android:layout_height="42dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="44dp"
             android:layout_marginTop="8dp"
-            android:onClick="onTestService"
-            android:text="CK"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button3"
-            app:layout_constraintTop_toBottomOf="@+id/launch_set_network"
-            app:layout_constraintVertical_bias="1.0" />
-
-        <Button
-            android:id="@+id/button3"
-            android:layout_width="60dp"
-            android:layout_height="38dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginEnd="16dp"
-            android:onClick="onStopService"
-            android:text="STP"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-        <Button
-            android:id="@+id/launch_set_network"
-            android:layout_width="0dp"
-            android:layout_height="41dp"
-            android:layout_marginBottom="8dp"
-            android:layout_marginStart="8dp"
             android:onClick="onLaunchSettingNetworks"
-            android:text="setting_Network"
-            app:layout_constraintBottom_toTopOf="@+id/StartServ"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/butConnect"
+            android:scaleType="fitCenter"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0" />
+            app:srcCompat="@drawable/serveur_off" />
 
-    </android.support.constraint.ConstraintLayout>
-
-    <android.support.constraint.ConstraintLayout
-        android:layout_width="368dp"
-        android:layout_height="204dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/TextRecu"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout">
-
-        <Button
-            android:id="@+id/select_bluetooth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:id="@+id/imgBbluetooth"
+            android:layout_width="83dp"
+            android:layout_height="83dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:onClick="chooseDevice"
-            android:text="Select Bluetooth"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:scaleType="fitCenter"
+            app:layout_constraintStart_toEndOf="@+id/imgBserver"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/bluetooth_off" />
+
+        <ImageButton
+            android:id="@+id/imgBShutDown"
+            android:layout_width="83dp"
+            android:layout_height="83dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:onClick="onStopService"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_lock_power_off" />
+
+        <ImageView
+            android:id="@+id/imgVApplis"
+            android:layout_width="83dp"
+            android:layout_height="83dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/imgBShutDown"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toEndOf="@+id/imgBbluetooth"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/appli_off" />
+
+        <TextView
+            android:id="@+id/textNbrAppli"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:textColor="@android:color/holo_red_light"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/imgVApplis"
+            app:layout_constraintEnd_toEndOf="@+id/imgVApplis"
+            app:layout_constraintHorizontal_bias="0.303"
+            app:layout_constraintStart_toStartOf="@+id/imgVApplis"
+            app:layout_constraintTop_toTopOf="@+id/imgVApplis"
+            app:layout_constraintVertical_bias="0.708" />
+
     </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
