@@ -72,6 +72,18 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
         else Toast.makeText(this.getApplicationContext(), "service already running" , Toast.LENGTH_SHORT ).show();
     }
 
+    /*protected void onResume()
+    {
+        super.onResume();
+        if ( serviceIntent==null ) {
+            serviceIntent = new Intent(MainActivity.this, ServiceUSBToIP.class);
+            startService(serviceIntent);  // cela semble nécessaire sinon le service ferme avec l'activity
+            bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE); //Binding to the service!
+            Toast.makeText(this.getApplicationContext(), "service relancé" , Toast.LENGTH_SHORT ).show();
+        }
+        else Toast.makeText(this.getApplicationContext(), "service already running" , Toast.LENGTH_SHORT ).show();
+    }*/
+
     //-------------------------------------------------------
     // traitement des boutons
     // Les boutons TCP
@@ -104,6 +116,15 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
 
     }
 
+    public void MenuVideoConfig(View view) {
+        Intent intent;
+
+        // Starts QualityListActivity where user can change the streaming quality
+        intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+                /* new Intent(VideoActivity.sVideoActivity.getBaseContext(),SettingsActivity.class);
+        startActivityForResult(intent, 0); */
+    }
 
     //-------------------------------------------------------
     // binding
@@ -137,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
                 serviceIntent=null;
             }
         //}  catch (Exception e){tvAppend(USBTextRecu,e.printStackTrace());}
+        finish();
     }
 
 

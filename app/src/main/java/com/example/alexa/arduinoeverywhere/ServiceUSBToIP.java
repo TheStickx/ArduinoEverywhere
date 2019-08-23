@@ -23,6 +23,7 @@ comme mentionné à https://felhr85.net/2014/11/11/usbserial-a-serial-port-drive
 
 */
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -34,18 +35,22 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.os.AsyncTask;
 
 
-import com.felhr.usbserial.UsbSerialDevice;
-import com.felhr.usbserial.UsbSerialInterface;
+//import com.felhr.usbserial.UsbSerialDevice;
+//import com.felhr.usbserial.UsbSerialInterface;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -225,6 +230,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
     }
 
     private String DonneesRecues;
+    Camera camForFlashLight;
 
     public void ProcessReception(String Reception)
     {
@@ -280,7 +286,43 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
 
             if (Etiquette.equals("capteurs"))
             {
-                // pas encore définis
+                // allumage du flash
+                if (Contenu.equals("FlashLightON")) {
+                    //if ( camForFlashLight == null )
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED) {
+                        // this is really unlikely, but I suppose it's possible.
+                        camForFlashLight = Camera.open();
+                        Parameters params = camForFlashLight.getParameters();
+                        /*params.setFlashMode(Parameters.FLASH_MODE_ON);
+                        camForFlashLight.setParameters(params);*/
+                        if(params != null) {
+                            List<String> supportedFlashModes = params.getSupportedFlashModes();
+
+                            if(supportedFlashModes != null) {
+
+                                if(supportedFlashModes.contains(Parameters.FLASH_MODE_TORCH)) {
+                                    params.setFlashMode( Parameters.FLASH_MODE_TORCH );
+                                } else if(supportedFlashModes.contains(Parameters.FLASH_MODE_ON)) {
+                                    params.setFlashMode( Parameters.FLASH_MODE_ON );
+                                }else camForFlashLight = null;
+                                camForFlashLight.setParameters(params);
+                                camForFlashLight.startPreview();
+
+
+                            } else Log.d(TAG, "Camera is null.");
+                        }
+                    }
+                }
+                // extinction du flash
+                if (Contenu.equals("FlashLightOFF")) {
+                    // if ( camForFlashLight == null )
+                    camForFlashLight = Camera.open();
+                    Parameters params = camForFlashLight.getParameters();
+                    params.setFlashMode(Parameters.FLASH_MODE_OFF);
+                    camForFlashLight.setParameters(params);
+                    camForFlashLight.release();
+                }
             }
 
             if (Etiquette.equals("video"))
@@ -371,7 +413,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         if (mWakeLock == null) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "ArduinoEveryWhere:Réveil pour la video");
         }
         mWakeLock.acquire();
 
@@ -389,7 +431,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
         if (mWakeLock == null) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
             mWakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK |
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "Réveil pour la video");
+                    PowerManager.ACQUIRE_CAUSES_WAKEUP), "ArduinoEveryWhere:Réveil pour la video");
         }
         if (mWakeLock.isHeld()) mWakeLock.release();
 

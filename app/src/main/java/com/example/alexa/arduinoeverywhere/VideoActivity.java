@@ -86,8 +86,8 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
     private TextView 					captureStatusText = null;
     private TextView 					captureStatusText2 = null;
     private TextView					captureStatusStat = null;
-    private ImageButton					mbuttonRec = null;
-    private ImageButton 				mbuttonSettings = null;
+    // private ImageButton					mbuttonRec = null;
+    // private ImageButton 				mbuttonSettings = null;
 
     String rtmp_url = "";
 
@@ -162,7 +162,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                             sss = "Streaming stopped. DEMO VERSION limitation";
                             capturer.Stop();
                             led.setImageResource(R.drawable.led_green);
-                            mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
+                            // mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
                             //-------------------------------------------------------
                             // projet Arduino everywhere préviens le service que la video est arrêté
                             ForTheService.TimeOutVideo();
@@ -197,7 +197,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                                 sss = "Streaming stopped. DEMO VERSION limitation";
                                 capturer.Stop();
                                 led.setImageResource(R.drawable.led_green);
-                                mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
+                                //mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
                             }else
                             if(rec_status != 0 && rec_status != (-999)){
                                 sss3 += "REC Err:"+rec_status;
@@ -459,7 +459,6 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
             FrameLayout.LayoutParams params = new FrameLayout.LayoutParams
                             ( metrics.widthPixels-20, metrics.heightPixels-20, Gravity.CENTER );
             capturer.setLayoutParams(params);
-
             //
             // Add Capture Instance to layout
             FrameLayout lp = (FrameLayout)findViewById(R.id.captureView);
@@ -474,6 +473,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
         if (mConfig.getCaptureSource() == MediaCaptureConfig.CaptureSources.PP_MODE_CAMERA.val())
             capturer.Open(null, this);
 
+        /*
         mbuttonSettings = (ImageButton) findViewById(R.id.imageButtonMenu);
         mbuttonSettings.setSoundEffectsEnabled(false);
         mbuttonSettings.setOnClickListener(
@@ -508,7 +508,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
                         }
                     }
                 }
-        );
+        ); */
     }
 
     private void StartVideo() {
@@ -523,14 +523,14 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
 
             //test
             //capturer.StopStreaming();
-            mbuttonRec.setImageResource(R.drawable.ic_stop);
+            //mbuttonRec.setImageResource(R.drawable.ic_stop);
 
         }else{
             //induvidual start test
             //-----------------------------------------------------------------
             // tentons de ne lancer que le streaming  // modif rtsp serv
             capturer.StartStreaming();
-            mbuttonRec.setImageResource(R.drawable.ic_stop);
+            //mbuttonRec.setImageResource(R.drawable.ic_stop);
 
         }
     }
@@ -541,7 +541,7 @@ public class VideoActivity extends Activity implements MediaCaptureCallback
         captureStatusText.setText("");
         captureStatusStat.setText("");
         captureStatusText2.setText("");
-        mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
+        // mbuttonRec.setImageResource(R.drawable.ic_fiber_manual_record_red);
     }
 
     public boolean isRec(){

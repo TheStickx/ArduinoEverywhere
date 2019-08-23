@@ -561,7 +561,8 @@ public class SettingsActivity extends PreferenceActivity {
 
         finish();
 
-        Intent intent = new Intent(this, VideoActivity.class);
+        // Intent intent = new Intent(this, VideoActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 }
