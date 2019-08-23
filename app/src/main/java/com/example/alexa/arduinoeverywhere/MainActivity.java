@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements ServiceUSBToIP.Ca
     // pour maniper les prefs enregistrées
     private SharedPreferences settings=null;
 
+    
     // Les boutons image
     private ImageButton mBtnServer = null;
     private ImageButton mBtnBlue = null;
