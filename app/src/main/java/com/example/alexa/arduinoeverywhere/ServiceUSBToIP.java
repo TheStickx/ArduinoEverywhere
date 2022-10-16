@@ -38,9 +38,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
-import android.hardware.usb.UsbManager;
+//import android.hardware.usb.UsbDevice;
+//import android.hardware.usb.UsbDeviceConnection;
+//import android.hardware.usb.UsbManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -743,7 +743,7 @@ public class ServiceUSBToIP extends Service implements VideoActivity.ForTheServi
                 e.printStackTrace();
             }
 
-            Log.d(TAG, "Send fin " + tempsString );
+            //Log.d(TAG, "Send fin " + tempsString );
         }
     }
 

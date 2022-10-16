@@ -16,6 +16,7 @@
 
 package com.example.alexa.arduinoeverywhere;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
@@ -28,6 +29,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.support.v4.app.ActivityCompat;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -178,6 +180,8 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     private void scanLeDevice(final boolean enable) {
+        // ajout de la gestion de permission
+        checkPermissions(DeviceScanActivity.this, this);
         if (enable) {
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
@@ -279,6 +283,32 @@ public class DeviceScanActivity extends ListActivity {
             });
         }
     };
+
+    // ajout de la gestion de permission
+    public static void checkPermissions(Activity activity, Context context){
+        int PERMISSION_ALL = 1;
+        String[] PERMISSIONS = {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                // Manifest.permission.BLUETOOTH_PRIVILEGED,
+        };
+
+        if(!hasPermissions(context, PERMISSIONS)){
+            ActivityCompat.requestPermissions( activity, PERMISSIONS, PERMISSION_ALL);
+        }
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
     static class ViewHolder {
         TextView deviceName;

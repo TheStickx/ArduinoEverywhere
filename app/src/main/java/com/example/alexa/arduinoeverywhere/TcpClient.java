@@ -19,6 +19,7 @@ import java.net.Socket;
 
 public class TcpClient {
 
+    private static final String TAG = DeviceControlActivity.class.getSimpleName();
     //public static final String SERVER_IP = "192.168.1.20"; //server IP address  192.168.1.20
     //public static final int SERVER_PORT = 13000;
     public String SERVER_IP = "192.168.1.20"; //server IP address  192.168.1.20
@@ -140,6 +141,7 @@ public class TcpClient {
                     if (mServerMessage != null && mMessageListener != null) {
 
                         //call the method messageReceived from MyActivity class
+                        Log.d(TAG, "Send debut avant publish" + mServerMessage );
                         mMessageListener.messageReceived(mServerMessage);
                     }
 
